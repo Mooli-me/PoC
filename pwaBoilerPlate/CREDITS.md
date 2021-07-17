@@ -1,1 +1,0 @@
-https://www.pwabuilder.com/imageGenerator
