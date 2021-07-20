@@ -2,6 +2,8 @@
 
 import { build, files, timestamp } from '$service-worker';
 
+import { store } from '../lib/testingStore';
+
 // 'timestamp' imported from $service-worker is a date time stamp from last server side build.
 // Using it for cache name provides a way for keep updated versions of files in the cache.
 const CACHE_NAME = timestamp;
@@ -45,3 +47,9 @@ addEventListener('activate', (event) => {
     return clients.claim();
   }));
 });
+
+function updateStore () {
+    store.set(Date.now());
+}
+
+setInterval(updateStore,1000);
