@@ -2,7 +2,8 @@
 
 import { build, files, timestamp } from '$service-worker';
 
-import { store } from '../lib/testingStore';
+import { get } from 'svelte/store';
+import { store } from './lib/testingStore';
 
 // 'timestamp' imported from $service-worker is a date time stamp from last server side build.
 // Using it for cache name provides a way for keep updated versions of files in the cache.
@@ -50,6 +51,8 @@ addEventListener('activate', (event) => {
 
 function updateStore () {
     store.set(Date.now());
+    console.log(`Updating store content: ${get(store)}`)
 }
 
 setInterval(updateStore,1000);
+

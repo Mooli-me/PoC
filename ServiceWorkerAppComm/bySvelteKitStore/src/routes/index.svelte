@@ -4,6 +4,7 @@
 
 <script>
 	import Counter from '$lib/Counter.svelte';
+	import { store } from '$lib/testingStore';
 </script>
 
 <svelte:head>
@@ -27,6 +28,14 @@
 	</h2>
 
 	<Counter />
+
+	<h2>
+		Service worker - Svelte app communication test
+	</h2>
+
+	<p>
+		This is the testing store content: {$store}
+	</p>
 </section>
 
 <style>
