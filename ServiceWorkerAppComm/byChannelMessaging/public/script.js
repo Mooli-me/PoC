@@ -1,4 +1,9 @@
-//References: https://www.w3schools.com/HTML/html5_webworkers.asp
+/**
+ * References:
+ * https://www.w3schools.com/HTML/html5_webworkers.asp
+ * https://github.com/jbmoelker/serviceworker-introduction/tree/gh-pages/steps/13-private-messaging
+ */
+
 
 const contents = document.querySelector('#contents')
 
