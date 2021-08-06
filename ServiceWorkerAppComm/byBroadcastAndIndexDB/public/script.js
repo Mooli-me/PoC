@@ -3,6 +3,7 @@ let secondsDiv;
 let clicksDiv;
 let button;
 let channel;
+let db;
 
 const clickMessage = {
     type: 'click',
@@ -30,7 +31,7 @@ function updateDB (ev) {
         },
         (db) => {
             console.log('Create DB first version');
-            db.createObjectStore("conversations", { keyPath: "id" });
+            db.createObjectStore("times", { keyPath: "timestamp" });
         },
         (db) => {
             console.log('Update to version 2');
@@ -56,9 +57,7 @@ function updateDB (ev) {
     //const objectStore = db.createObjectStore("name", { keyPath: "myKey" });
 }
 
-async function openDB () {
-
-    let db;
+function openDB () {
 
     if (!window.indexedDB) {
         console.error("Browser doesn't seems to support IndexDB");
@@ -77,6 +76,39 @@ async function openDB () {
 
     dbConnection.onerror = (ev) => console.error('Error opening DB:', ev.target.errorCode);
 
+}
+
+function addObjectToDB (obj, db, storeName) {
+
+    const transaction = db.transaction(storeName, 'readwrite');
+
+    transaction.oncomplete = ev => console.log('Transaction done:', ev);
+
+    transaction.onerror = ev => console.error('Transaction error:', ev);
+
+    const store = transaction.objectStore(storeName);
+
+    const resquest = store.add(obj)
+
+    resquest.onsuccess = (ev) => console.log('Time added to DB:', ev);
+
+}
+
+function writeDateToDB () {
+
+    const now = Date.now();
+
+    const obj = {
+        timestamp: now,
+        string: Date(now)
+    }
+
+    addObjectToDB(obj, db, 'times');
+
+}
+
+function startLoop () {
+    setInterval(writeDateToDB, 5000);
 }
 
 function main () {
@@ -101,6 +133,8 @@ function main () {
         clicksDiv = document.querySelector('div#clicks');
         button = document.querySelector('button');
         button.addEventListener('click', () =>  channel.postMessage(clickMessage) );
+
+        startLoop();
 
     } else {
 
