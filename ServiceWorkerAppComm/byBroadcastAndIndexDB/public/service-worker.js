@@ -10,15 +10,13 @@ const precache = {
     '/img/logo.png'
   ]
 };
+
 const appVersion = 2;
 
 let db;
 
 let clickCounter = 0;
 let secondsCounter = 0;
-
-const channel = new BroadcastChannel('main');
-
 
 function updateDB (ev) {
   const updateProcesses = [
@@ -74,7 +72,7 @@ function openDB () {
 
 }
 
-function addObjectToDB (obj, db, storeName) {
+function addObjectToDB (obj, db, storeName, channel) {
 
   const transaction = db.transaction(storeName, 'readwrite');
 
@@ -98,7 +96,7 @@ function addObjectToDB (obj, db, storeName) {
 
 }
 
-function writeDateToDB () {
+function writeDateToDB (channel) {
 
   const now = Date.now();
 
@@ -107,18 +105,18 @@ function writeDateToDB () {
       string: Date(now)
   }
 
-  addObjectToDB(obj, db, 'times');
+  addObjectToDB(obj, db, 'times', channel);
 
 }
 
-function startLoop () {
-  setInterval(writeDateToDB, 5000);
+function startLoop (channel) {
+  setInterval(()=>writeDateToDB(channel), 5000);
   console.log('Writing time to DB each 5 seconds.');
-  setInterval(updateSeconds,1000);
+  setInterval(()=>updateSeconds(channel),1000);
   console.log('Updating time each second.')
 }
 
-function updateSeconds () {
+function updateSeconds (channel) {
   secondsCounter ++;
   channel.postMessage(
     {
@@ -127,35 +125,54 @@ function updateSeconds () {
     })
 }
 
-
-openDB();
-
-console.log('Setting message event.')
-channel.addEventListener('message', (ev) => {
-  console.log('Message received in service worker');
-  clickCounter++;
-  channel.postMessage(
-    {
-      type: 'clicks',
-      value: clickCounter
+function createChannel () {
+  console.log('Opening broadcast channel and setting handlers.');
+  const channel = new BroadcastChannel('main');
+  channel.addEventListener('message', (ev) => {
+    console.log('Message received in service worker:', ev);
+    switch (ev.data.type) {
+      case 'click':
+        clickCounter++;
+        channel.postMessage(
+          {
+            type: 'clicks',
+            value: clickCounter
+          }
+        );
+        break;
+      default:
+        console.error('Unknown message type.')
+        break;
     }
-  );
-});
+  });
 
-console.log('Setting install event.')
-self.addEventListener('install', ev => {
-  ev.waitUntil(
-    caches.open(precache.id)
-      .then(
-        cache => cache.addAll(precache.paths)
-      )
-      .then(
-        self.skipWaiting()
-      )
-  );
-});
+  return channel
+}
 
-console.log('Getting control.')
-self.clients.claim();
+function main () {
 
-startLoop();
+  openDB();
+
+  const channel = createChannel();
+  
+  console.log('Setting install event.')
+  self.addEventListener('install', ev => {
+    ev.waitUntil(
+      caches.open(precache.id)
+        .then(
+          cache => cache.addAll(precache.paths)
+        )
+        .then(
+          self.skipWaiting()
+        )
+    );
+  });
+  
+  console.log('Getting control.')
+  self.clients.claim();
+  
+  startLoop(channel);
+
+}
+
+main();
