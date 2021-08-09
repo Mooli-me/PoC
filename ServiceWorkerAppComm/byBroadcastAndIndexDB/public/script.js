@@ -60,6 +60,13 @@ function openDB () {
     dbConnection.onerror = (ev) => console.error('Error opening DB:', ev.target.errorCode);
 }
 
+function requestClening() {
+    const request = {
+        type: 'clean'
+    }
+    channel.postMessage(request);
+}
+
 function updateDisplay (ev) {
     const resultLength = ev.target.result.length;
     const lastFive = ev.target.result.slice(resultLength - 6)
@@ -69,6 +76,7 @@ function updateDisplay (ev) {
         item.innerText = element.string;
         lastFiveUl.appendChild(item)
     });
+    requestClening();
 }
 
 function getStoreData (db, storeName) {
@@ -78,7 +86,6 @@ function getStoreData (db, storeName) {
   const store = transaction.objectStore(storeName);
   const resquest = store.getAll()
   resquest.onsuccess = updateDisplay;
-
 }
 
 function messageHandler (ev) {

@@ -75,15 +75,11 @@ function openDB () {
 function addObjectToDB (obj, db, storeName, channel) {
 
   const transaction = db.transaction(storeName, 'readwrite');
-
   transaction.oncomplete = ev => console.log('Transaction done for worker.');
-
   transaction.onerror = ev => console.error('Transaction error:', ev);
 
   const store = transaction.objectStore(storeName);
-
   const resquest = store.add(obj)
-
   resquest.onsuccess = (ev) => console.log('Time added to DB.');
 
   channel.postMessage(
@@ -94,6 +90,33 @@ function addObjectToDB (obj, db, storeName, channel) {
       }
   );
 
+}
+
+function deleteDBItem (item) {
+  const deleteTransaction = db.transaction('times', 'readwrite');
+  deleteTransaction.onerror = ev => console.error('Transaction error removing item: ', ev);
+
+  const deleteKeystore = deleteTransaction.objectStore('times');
+  const result = deleteKeystore.delete(item);
+  result.error = err => console.error(err);
+}
+
+function cleanDB () {
+
+  const getKeysTransaction = db.transaction('times', 'readonly');
+  getKeysTransaction.onerror = ev => console.error('Transaction error reading keys:', ev);
+
+  const readKeystore = getKeysTransaction.objectStore('times');
+  const getKeysRequest = readKeystore.getAllKeys()
+
+  getKeysRequest.onsuccess = ev => {
+    const keys = ev.target.result;
+
+    if ( keys.length <= 10 ) return;
+
+    const oldKeys = keys.slice( 0, keys.length - 11 );
+    oldKeys.forEach( element => deleteDBItem(element) );
+  }
 }
 
 function writeDateToDB (channel) {
@@ -139,6 +162,10 @@ function createChannel () {
             value: clickCounter
           }
         );
+        break;
+      case 'clean':
+        console.log('Cleaning request.')
+        cleanDB();
         break;
       default:
         console.error('Unknown message type.')
