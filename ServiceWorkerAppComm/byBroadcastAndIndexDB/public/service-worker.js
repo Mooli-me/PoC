@@ -76,7 +76,7 @@ function addObjectToDB (obj, db, storeName, channel) {
 
   const transaction = db.transaction(storeName, 'readwrite');
 
-  transaction.oncomplete = ev => console.log('Transaction done:', ev);
+  transaction.oncomplete = ev => console.log('Transaction done for worker.');
 
   transaction.onerror = ev => console.error('Transaction error:', ev);
 
@@ -84,7 +84,7 @@ function addObjectToDB (obj, db, storeName, channel) {
 
   const resquest = store.add(obj)
 
-  resquest.onsuccess = (ev) => console.log('Time added to DB:', ev);
+  resquest.onsuccess = (ev) => console.log('Time added to DB.');
 
   channel.postMessage(
       {
@@ -129,7 +129,7 @@ function createChannel () {
   console.log('Opening broadcast channel and setting handlers.');
   const channel = new BroadcastChannel('main');
   channel.addEventListener('message', (ev) => {
-    console.log('Message received in service worker:', ev);
+    console.log('Message received in service worker.');
     switch (ev.data.type) {
       case 'click':
         clickCounter++;

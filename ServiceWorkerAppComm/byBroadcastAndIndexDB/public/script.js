@@ -1,4 +1,4 @@
-let lastDBUpdate;
+let lastFiveUl;
 let secondsDiv;
 let clicksDiv;
 let button;
@@ -60,17 +60,24 @@ function openDB () {
     dbConnection.onerror = (ev) => console.error('Error opening DB:', ev.target.errorCode);
 }
 
-function updateDBContents (ev) {
-    console.log('==========>>>>>>> Data in store:', ev.target.result);
+function updateDisplay (ev) {
+    const resultLength = ev.target.result.length;
+    const lastFive = ev.target.result.slice(resultLength - 6)
+    lastFiveUl.innerText = '';
+    lastFive.forEach(element => {
+        const item = document.createElement('li');
+        item.innerText = element.string;
+        lastFiveUl.appendChild(item)
+    });
 }
 
 function getStoreData (db, storeName) {
   const transaction = db.transaction(storeName, 'readonly');
-  transaction.oncomplete = ev => console.log('Transaction done:', ev);
+  transaction.oncomplete = ev => console.log('Transaction done for window.');
   transaction.onerror = ev => console.error('Transaction error:', ev);
   const store = transaction.objectStore(storeName);
   const resquest = store.getAll()
-  resquest.onsuccess = updateDBContents;
+  resquest.onsuccess = updateDisplay;
 
 }
 
@@ -84,8 +91,7 @@ function messageHandler (ev) {
             secondsDiv.innerText = ev.data.value;
             break;
         case 'DBUpdate':
-            console.log('DB update notification:', ev);
-            lastDBUpdate.innerText = ev.data.obj.string;
+            console.log('DB update notification:', ev.data.obj.string);
             getStoreData(db, 'times');
             break;
         default:
@@ -113,7 +119,7 @@ function main () {
 
         secondsDiv = document.querySelector('div#seconds');
         clicksDiv = document.querySelector('div#clicks');
-        lastDBUpdate = document.querySelector('div#lastDBUpdate')
+        lastFiveUl = document.querySelector('ul#lastFive')
         button = document.querySelector('button');
         button.addEventListener('click', () =>  channel.postMessage(clickMessage) );
 
