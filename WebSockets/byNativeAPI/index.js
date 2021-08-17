@@ -9,6 +9,11 @@ app.use(express.static(__dirname + '/public'));
 const httpServer = http.createServer(app);
 const webSocketsServer = new webSockets.Server({ server: httpServer });
 
+function sendWSMessage (ws) {
+    console.log('Sending message...')
+    ws.send(Date.now());
+}
+
 webSocketsServer.on('connection', async (ws) => {
 
     console.log('-> Client connected');
@@ -18,6 +23,8 @@ webSocketsServer.on('connection', async (ws) => {
     ws.on('message', (msg) => {
         console.log('-- Message arrived:', msg);
     });
+
+    setInterval(()=>sendWSMessage(ws), 5000);
 
 })
 
