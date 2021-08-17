@@ -13,7 +13,10 @@ const precache = {
 
 const appVersion = 2;
 
+const webSocketURL = 'ws://localhost:3000'
+
 let db;
+let channel;
 
 let clickCounter = 0;
 let secondsCounter = 0;
@@ -119,25 +122,23 @@ function cleanDB () {
   }
 }
 
-function writeDateToDB (channel) {
-
-  const now = Date.now();
+function writeDateToDB (channel, timestamp) {
 
   const obj = {
-      timestamp: now,
-      string: Date(now)
+      timestamp: parseInt(timestamp),
+      string: Date(timestamp)
   }
 
   addObjectToDB(obj, db, 'times', channel);
 
 }
 
-function startLoop (channel) {
+/*function startLoop (channel) {
   setInterval(()=>writeDateToDB(channel), 5000);
   console.log('Writing time to DB each 5 seconds.');
   setInterval(()=>updateSeconds(channel),1000);
   console.log('Updating time each second.')
-}
+}*/
 
 function updateSeconds (channel) {
   secondsCounter ++;
@@ -176,11 +177,27 @@ function createChannel () {
   return channel
 }
 
+
+function webSocketConnection () {
+
+  console.log('Opening web socket.')
+
+  const ws = new WebSocket(webSocketURL);
+
+  ws.addEventListener('open',()=>console.log('Web socket opened.'));
+  ws.addEventListener('message', (msg)=>writeDateToDB(channel, msg.data));
+  ws.addEventListener('error', (err)=>console.error(err));
+  ws.addEventListener('close', ()=>console.log('Web socked closed.'));
+
+  return ws;
+
+}
+
 function main () {
 
+  const ws = webSocketConnection();
   openDB();
-
-  const channel = createChannel();
+  channel = createChannel();
   
   console.log('Setting install event.')
   self.addEventListener('install', ev => {
@@ -194,11 +211,11 @@ function main () {
         )
     );
   });
-  
+
   console.log('Getting control.')
   self.clients.claim();
   
-  startLoop(channel);
+  //startLoop(channel);
 
 }
 
