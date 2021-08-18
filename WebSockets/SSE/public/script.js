@@ -1,5 +1,4 @@
 let lastFiveUl;
-let secondsDiv;
 let clicksDiv;
 let button;
 let channel;
@@ -124,7 +123,6 @@ function main () {
 
         openDB();
 
-        secondsDiv = document.querySelector('div#seconds');
         clicksDiv = document.querySelector('div#clicks');
         lastFiveUl = document.querySelector('ul#lastFive')
         button = document.querySelector('button');

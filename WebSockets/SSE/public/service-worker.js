@@ -14,6 +14,7 @@ const precache = {
 const appVersion = 2;
 
 let db;
+let channel;
 
 let clickCounter = 0;
 let secondsCounter = 0;
@@ -48,7 +49,6 @@ function updateDB (ev) {
       process(db);
   }
   
-  //const objectStore = db.createObjectStore("name", { keyPath: "myKey" });
 }
 
 function openDB () {
@@ -72,7 +72,7 @@ function openDB () {
 
 }
 
-function addObjectToDB (obj, db, storeName, channel) {
+function addObjectToDB (obj, db, storeName) {
 
   const transaction = db.transaction(storeName, 'readwrite');
   transaction.oncomplete = ev => console.log('Transaction done for worker.');
@@ -119,33 +119,17 @@ function cleanDB () {
   }
 }
 
-function writeDateToDB (channel) {
+function writeDateToDB (datetime) {
 
-  const now = Date.now();
+  const now = parseInt(datetime)
 
   const obj = {
       timestamp: now,
       string: Date(now)
   }
 
-  addObjectToDB(obj, db, 'times', channel);
+  addObjectToDB(obj, db, 'times');
 
-}
-
-function startLoop (channel) {
-  setInterval(()=>writeDateToDB(channel), 5000);
-  console.log('Writing time to DB each 5 seconds.');
-  setInterval(()=>updateSeconds(channel),1000);
-  console.log('Updating time each second.')
-}
-
-function updateSeconds (channel) {
-  secondsCounter ++;
-  channel.postMessage(
-    {
-      type: 'time',
-      value: secondsCounter
-    })
 }
 
 function createChannel () {
@@ -179,10 +163,9 @@ function createChannel () {
 function newSubscription () {
   console.log('Subscribing.')
   const subscription = new EventSource('/subscription');
-  subscription.addEventListener('open', ev => console.log('Subscription opened:', ev), false );
-  subscription.addEventListener('update', ev => console.log('Update from backend:', ev.data), false );
-  subscription.addEventListener('welcome', ev => console.log('Got subscription response:', ev.data), false);
-  console.log(subscription);
+  subscription.addEventListener('open', ev => console.log('Subscription opened.') );
+  subscription.addEventListener('update', ev => writeDateToDB(ev.data) );
+  subscription.addEventListener('welcome', ev => console.log('Got subscription response:', ev.data) );
   return subscription
 }
 
@@ -190,7 +173,7 @@ function main () {
 
   openDB();
 
-  const channel = createChannel();
+  channel = createChannel();
 
   const subscription = newSubscription();
   
@@ -206,11 +189,6 @@ function main () {
         )
     );
   });
-  
-  console.log('Getting control.')
-  self.clients.claim();
-  
-  //startLoop(channel);
 
 }
 

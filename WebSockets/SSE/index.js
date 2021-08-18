@@ -1,19 +1,13 @@
 const express = require('express');
-//const bodyParser = require('body-parser');
-//const cors = require('cors');
-//const { response, request } = require('express');
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 
-const subscriptors = [];
+let subscriptors = [];
 
 let subscriptionsCounter = 0;
 
-//app.use(cors());
-//app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(__dirname + '/public'));
 
 async function removeSubscriptor (id) {
