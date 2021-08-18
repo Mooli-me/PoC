@@ -13,9 +13,3 @@ So, for Mooli we will use a API Rest POST poll for sending messages from browser
 Each chat/conversation will be represented by a URL. Worker can subscribe for getting SSE notifications and cant send new messages to the same URL.
 
 Both subscriptions and message sending will require adecuate authentication/authorization.
-
-References:
-
-* https://www.digitalocean.com/community/tutorials/nodejs-server-sent-events-build-realtime-app
-* https://codeburst.io/polling-vs-sse-vs-websocket-how-to-choose-the-right-one-1859e4e13bd9
-* http://html5doctor.com/server-sent-events/
