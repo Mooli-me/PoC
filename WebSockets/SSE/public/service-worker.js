@@ -176,11 +176,23 @@ function createChannel () {
   return channel
 }
 
+function newSubscription () {
+  console.log('Subscribing.')
+  const subscription = new EventSource('/subscription');
+  subscription.addEventListener('open', ev => console.log('Subscription opened:', ev), false );
+  subscription.addEventListener('update', ev => console.log('Update from backend:', ev.data), false );
+  subscription.addEventListener('welcome', ev => console.log('Got subscription response:', ev.data), false);
+  console.log(subscription);
+  return subscription
+}
+
 function main () {
 
   openDB();
 
   const channel = createChannel();
+
+  const subscription = newSubscription();
   
   console.log('Setting install event.')
   self.addEventListener('install', ev => {
@@ -198,7 +210,7 @@ function main () {
   console.log('Getting control.')
   self.clients.claim();
   
-  startLoop(channel);
+  //startLoop(channel);
 
 }
 

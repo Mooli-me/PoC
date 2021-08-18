@@ -1,7 +1,7 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { response, request } = require('express');
+//const bodyParser = require('body-parser');
+//const cors = require('cors');
+//const { response, request } = require('express');
 
 const PORT = process.env.PORT || 3000;
 
@@ -11,9 +11,9 @@ const subscriptors = [];
 
 let subscriptionsCounter = 0;
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+//app.use(cors());
+//app.use(bodyParser.json());
+//app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(__dirname + '/public'));
 
 async function removeSubscriptor (id) {
@@ -22,6 +22,8 @@ async function removeSubscriptor (id) {
 }
 
 async function subscriptionHandler (req, res, next) {
+
+    console.log('New subscriptor.')
     
     const headers = {
         'Content-Type': 'text/event-stream',
@@ -29,24 +31,30 @@ async function subscriptionHandler (req, res, next) {
         'Cache-Control': 'no-cache'
     };
 
-    response.writeHead(200, headers);
+    res.writeHead(200, headers);
 
-    response.write('data: Welcome.\n\n');
+    res.write('retry: 500\n');
+    res.write('event: welcome\n');
+    res.write('data: Welcome.\n\n');
 
     const subscriptor = {
         id: subscriptionsCounter++,
-        connection: response
+        connection: res
     }
 
     subscriptors.push(subscriptor);
 
-    request.on('close', () => removeSubscriptor(subscriptor.id) );
+    req.on('close', () => removeSubscriptor(subscriptor.id) );
 }
 
 async function sendMessage () {
     console.log('Sending message to subscriptors.')
     subscriptors.forEach(
-        subscriptor => subscriptor.connection.write(`data: ${Date.now()}\n\n`)
+        subscriptor => {
+            subscriptor.connection.write(`retry: 500\n`)
+            subscriptor.connection.write(`event: update\n`)
+            subscriptor.connection.write(`data: ${Date.now()}\n\n`)
+        }
     )
 }
 
