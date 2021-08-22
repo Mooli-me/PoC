@@ -1,6 +1,6 @@
 let secondsDiv;
 let clicksDiv;
-let button
+let button;
 let channel;
 
 const clickMessage = {

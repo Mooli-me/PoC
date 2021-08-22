@@ -11,6 +11,13 @@ const clickMessage = {
     value: true
 }
 
+const updatesCounter = {
+    updates: 0,
+    lastUpdate: null,
+    lostUpdates: 0,
+    workerCounter: null
+}
+
 function updateDB (ev) {
     const updateProcesses = [
         (db) => {
@@ -87,6 +94,20 @@ function getStoreData (db, storeName) {
   resquest.onsuccess = updateDisplay;
 }
 
+function uptadeCounter (data) {
+    if ( updatesCounter.updates !== 0 ) {
+        lostUpdates += (data - lastUpdate) - 1;
+    }
+    updatesCounter.lastUpdate = data;
+    updatesCounter.updates++
+    channel.postMessage(
+        {
+            type: 'counterUpdate',
+            data: updatesCounter
+        }
+    );
+}
+
 function messageHandler (ev) {
     console.log('A new update from worker.')
     switch (ev.data.type) {
@@ -108,6 +129,8 @@ function messageHandler (ev) {
                 )
             }
             break;
+        case 'counterUpdate':
+            updatesCounter(/* Pasar datos y reescribir funcion */);
         default:
             console.error('Unknown messaje:', ev);
     }

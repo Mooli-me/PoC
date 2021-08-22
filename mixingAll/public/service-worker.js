@@ -13,11 +13,18 @@ const precache = {
 
 const appVersion = 2;
 
+let worker;
 let db;
 let channel;
 
 let clickCounter = 0;
 let secondsCounter = 0;
+
+let updatesCounter = {
+  updates: 0,
+  lastUpdate: null,
+  lostUpdates: 0
+}
 
 function updateDB (ev) {
   const updateProcesses = [
@@ -119,13 +126,11 @@ function cleanDB () {
   }
 }
 
-function writeDateToDB (datetime) {
-
-  const now = parseInt(datetime)
+function writeDateToDB (data) {
 
   const obj = {
-      timestamp: now,
-      string: Date(now)
+      timestamp: Date.now(),
+      counter: data
   }
 
   addObjectToDB(obj, db, 'times');
@@ -151,6 +156,9 @@ function createChannel () {
         console.log('Cleaning request.')
         cleanDB();
         break;
+      case 'notificationsGranted':
+        console.log('Opening permanent notification.');
+        openPermanentNotification();
       default:
         console.error('Unknown message type.')
         break;
@@ -160,36 +168,74 @@ function createChannel () {
   return channel
 }
 
+function uptadeCounter (data) {
+  if ( updatesCounter.updates !== 0 ) {
+    lostUpdates += (data - lastUpdate) - 1;
+  }
+  updatesCounter.lastUpdate = data;
+  updatesCounter.updates++
+  channel.postMessage(
+    {
+        type: 'counterUpdate',
+        data: updatesCounter
+    }
+  );
+}
+
 function newSubscription () {
   console.log('Subscribing.')
   const subscription = new EventSource('/subscription');
   subscription.addEventListener('open', ev => console.log('Subscription opened.') );
-  subscription.addEventListener('update', ev => writeDateToDB(ev.data) );
+  subscription.addEventListener('update', ev => { writeDateToDB(ev.data); updateCounter(data) });
   subscription.addEventListener('welcome', ev => console.log('Got subscription response:', ev.data) );
   return subscription
 }
 
-function main () {
-
-  openDB();
-
-  channel = createChannel();
-
-  const subscription = newSubscription();
-  
-  console.log('Setting install event.')
-  self.addEventListener('install', ev => {
-    ev.waitUntil(
-      caches.open(precache.id)
-        .then(
-          cache => cache.addAll(precache.paths)
-        )
-        .then(
-          self.skipWaiting()
-        )
-    );
-  });
-
+function preloadCache (ev) {
+  ev.waitUntil(
+    caches.open(precache.id)
+      .then(
+        cache => cache.addAll(precache.paths)
+      )
+      .then(
+        self.skipWaiting()
+      )
+  );
 }
 
-main();
+function openPermanentNotification () {
+  if ( Notification.permission === 'granted' ) {
+      self.registration.showNotification(
+          'Mooli.me PoC', 
+          {
+              body: 'Here I\'m!',
+              icon: '/img/logo.png',
+              image: '/img/logo.png',
+              requireInteraction: true,
+              actions: [
+                  {
+                      action: 'close',
+                      title: 'Close',
+                  }
+              ]
+          }
+      )
+  }
+}
+
+function notificationsHandler (ev) {
+  if (ev.action === 'close') openPermanentNotification();
+}
+
+function main () {
+  openDB();
+  channel = createChannel();
+  const subscription = newSubscription();
+}
+
+
+self.addEventListener('install', preloadCache );
+
+self.addEventListener('activate', main);
+
+self.addEventListener('notificationclick', notificationsHandler)

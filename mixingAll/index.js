@@ -8,6 +8,8 @@ let subscriptors = [];
 
 let subscriptionsCounter = 0;
 
+let counter = 0;
+
 app.use(express.static(__dirname + '/public'));
 
 async function removeSubscriptor (id) {
@@ -42,12 +44,11 @@ async function subscriptionHandler (req, res, next) {
 }
 
 async function sendMessage () {
-    console.log('Sending message to subscriptors.')
     subscriptors.forEach(
         subscriptor => {
             subscriptor.connection.write(`retry: 500\n`)
             subscriptor.connection.write(`event: update\n`)
-            subscriptor.connection.write(`data: ${Date.now()}\n\n`)
+            subscriptor.connection.write(`data: ${counter++}\n\n`)
         }
     )
 }
