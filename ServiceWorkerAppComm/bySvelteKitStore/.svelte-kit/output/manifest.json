@@ -1,0 +1,90 @@
+{
+  ".svelte-kit/build/runtime/internal/start.js": {
+    "file": "start-a0a6a68b.js",
+    "src": ".svelte-kit/build/runtime/internal/start.js",
+    "isEntry": true,
+    "imports": [
+      "_vendor-953b6192.js"
+    ],
+    "dynamicImports": [
+      "src/routes/__layout.svelte",
+      ".svelte-kit/build/components/error.svelte",
+      "src/routes/index.svelte",
+      "src/routes/about.svelte",
+      "src/routes/todos/index.svelte"
+    ],
+    "css": [
+      "assets/start-a8cd1609.css"
+    ]
+  },
+  "src/routes/__layout.svelte": {
+    "file": "pages/__layout.svelte-40e36b72.js",
+    "src": "src/routes/__layout.svelte",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-953b6192.js"
+    ],
+    "css": [
+      "assets/pages/__layout.svelte-ded7473c.css"
+    ],
+    "assets": [
+      "assets/svelte-logo.87df40b8.svg",
+      "assets/fira-mono-cyrillic-ext-400-normal.b3140dd3.woff2",
+      "assets/fira-mono-all-400-normal.0d19eb5d.woff",
+      "assets/fira-mono-cyrillic-400-normal.046b609f.woff2",
+      "assets/fira-mono-greek-ext-400-normal.8659ae46.woff2",
+      "assets/fira-mono-greek-400-normal.1f8b3a07.woff2",
+      "assets/fira-mono-latin-ext-400-normal.b6331a25.woff2",
+      "assets/fira-mono-latin-400-normal.a2f9dbe8.woff2"
+    ]
+  },
+  ".svelte-kit/build/components/error.svelte": {
+    "file": "error.svelte-cdba9e14.js",
+    "src": ".svelte-kit/build/components/error.svelte",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-953b6192.js"
+    ]
+  },
+  "src/routes/index.svelte": {
+    "file": "pages/index.svelte-a30cd3da.js",
+    "src": "src/routes/index.svelte",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-953b6192.js"
+    ],
+    "css": [
+      "assets/pages/index.svelte-078f1a0b.css"
+    ]
+  },
+  "src/routes/about.svelte": {
+    "file": "pages/about.svelte-4dc37296.js",
+    "src": "src/routes/about.svelte",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-953b6192.js"
+    ],
+    "css": [
+      "assets/pages/about.svelte-4db5be0d.css"
+    ]
+  },
+  "src/routes/todos/index.svelte": {
+    "file": "pages/todos/index.svelte-7de99b46.js",
+    "src": "src/routes/todos/index.svelte",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-953b6192.js"
+    ],
+    "css": [
+      "assets/pages/todos/index.svelte-05e41044.css"
+    ]
+  },
+  "_vendor-953b6192.js": {
+    "file": "chunks/vendor-953b6192.js"
+  }
+}
