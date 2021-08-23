@@ -7,17 +7,25 @@ const precache = {
     '/script.js',
     '/styles.css',
     '/service-worker.js',
+    '/ping.txt',
     '/img/logo.png'
   ]
 };
 
 const appVersion = 2;
 
+let worker;
 let db;
 let channel;
 
 let clickCounter = 0;
 let secondsCounter = 0;
+
+let updatesCounter = {
+  updates: 0,
+  lastUpdate: null,
+  lostUpdates: 0
+}
 
 function updateDB (ev) {
   const updateProcesses = [
@@ -75,12 +83,12 @@ function openDB () {
 function addObjectToDB (obj, db, storeName) {
 
   const transaction = db.transaction(storeName, 'readwrite');
-  transaction.oncomplete = ev => console.log('Transaction done for worker.');
+  //transaction.oncomplete = ev => console.log('Transaction done for worker.');
   transaction.onerror = ev => console.error('Transaction error:', ev);
 
   const store = transaction.objectStore(storeName);
   const resquest = store.add(obj)
-  resquest.onsuccess = (ev) => console.log('Time added to DB.');
+  //resquest.onsuccess = (ev) => console.log('Time added to DB.');
 
   channel.postMessage(
       {
@@ -119,13 +127,11 @@ function cleanDB () {
   }
 }
 
-function writeDateToDB (datetime) {
-
-  const now = parseInt(datetime)
+function writeDateToDB (data) {
 
   const obj = {
-      timestamp: now,
-      string: Date(now)
+      timestamp: Date.now(),
+      counter: data
   }
 
   addObjectToDB(obj, db, 'times');
@@ -136,7 +142,7 @@ function createChannel () {
   console.log('Opening broadcast channel and setting handlers.');
   const channel = new BroadcastChannel('main');
   channel.addEventListener('message', (ev) => {
-    console.log('Message received in service worker.');
+    //console.log('Message received in service worker.');
     switch (ev.data.type) {
       case 'click':
         clickCounter++;
@@ -148,9 +154,11 @@ function createChannel () {
         );
         break;
       case 'clean':
-        console.log('Cleaning request.')
         cleanDB();
         break;
+      case 'notificationsGranted':
+        console.log('Opening permanent notification.');
+        openPermanentNotification();
       default:
         console.error('Unknown message type.')
         break;
@@ -160,36 +168,79 @@ function createChannel () {
   return channel
 }
 
+function updateCounter (data) {
+  data = parseInt(data);
+  if ( updatesCounter.updates !== 0 ) {
+    updatesCounter.lostUpdates += (data - updatesCounter.lastUpdate) - 1;
+  }
+  updatesCounter.lastUpdate = data;
+  updatesCounter.updates++
+  channel.postMessage(
+    {
+        type: 'counterUpdate',
+        data: updatesCounter
+    }
+  );
+}
+
 function newSubscription () {
   console.log('Subscribing.')
   const subscription = new EventSource('/subscription');
   subscription.addEventListener('open', ev => console.log('Subscription opened.') );
-  subscription.addEventListener('update', ev => writeDateToDB(ev.data) );
+  subscription.addEventListener('update', ev => { writeDateToDB(ev.data); updateCounter(ev.data) });
   subscription.addEventListener('welcome', ev => console.log('Got subscription response:', ev.data) );
   return subscription
 }
 
-function main () {
-
-  openDB();
-
-  channel = createChannel();
-
-  const subscription = newSubscription();
-  
-  console.log('Setting install event.')
-  self.addEventListener('install', ev => {
-    ev.waitUntil(
-      caches.open(precache.id)
-        .then(
-          cache => cache.addAll(precache.paths)
-        )
-        .then(
-          self.skipWaiting()
-        )
-    );
-  });
-
+function preloadCache (ev) {
+  ev.waitUntil(
+    caches.open(precache.id)
+      .then(
+        cache => cache.addAll(precache.paths)
+      )
+      .then(
+        (ev) => {
+          console.log('> NEW WORKER INSTALLED <');
+          self.skipWaiting();
+        }
+      )
+  );
 }
 
-main();
+function openPermanentNotification () {
+  if ( Notification.permission === 'granted' ) {
+      self.registration.showNotification(
+          'Mooli.me PoC', 
+          {
+              body: 'Here I\'m!',
+              icon: '/img/logo.png',
+              image: '/img/logo.png',
+              requireInteraction: true,
+              actions: [
+                  {
+                      action: 'close',
+                      title: 'Close',
+                  }
+              ]
+          }
+      )
+  }
+}
+
+function notificationsHandler (ev) {
+  if (ev.action === 'close') openPermanentNotification();
+}
+
+function main () {
+  openDB();
+  channel = createChannel();
+  const subscription = newSubscription();
+}
+
+main()
+
+self.addEventListener('install', preloadCache );
+
+self.addEventListener('notificationclick', notificationsHandler)
+
+//self.addEventListener('activate', main);
