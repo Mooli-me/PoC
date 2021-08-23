@@ -7,6 +7,7 @@ const precache = {
     '/script.js',
     '/styles.css',
     '/service-worker.js',
+    '/ping.txt',
     '/img/logo.png'
   ]
 };
@@ -82,12 +83,12 @@ function openDB () {
 function addObjectToDB (obj, db, storeName) {
 
   const transaction = db.transaction(storeName, 'readwrite');
-  transaction.oncomplete = ev => console.log('Transaction done for worker.');
+  //transaction.oncomplete = ev => console.log('Transaction done for worker.');
   transaction.onerror = ev => console.error('Transaction error:', ev);
 
   const store = transaction.objectStore(storeName);
   const resquest = store.add(obj)
-  resquest.onsuccess = (ev) => console.log('Time added to DB.');
+  //resquest.onsuccess = (ev) => console.log('Time added to DB.');
 
   channel.postMessage(
       {
@@ -141,7 +142,7 @@ function createChannel () {
   console.log('Opening broadcast channel and setting handlers.');
   const channel = new BroadcastChannel('main');
   channel.addEventListener('message', (ev) => {
-    console.log('Message received in service worker.');
+    //console.log('Message received in service worker.');
     switch (ev.data.type) {
       case 'click':
         clickCounter++;
@@ -153,7 +154,6 @@ function createChannel () {
         );
         break;
       case 'clean':
-        console.log('Cleaning request.')
         cleanDB();
         break;
       case 'notificationsGranted':
@@ -168,9 +168,10 @@ function createChannel () {
   return channel
 }
 
-function uptadeCounter (data) {
+function updateCounter (data) {
+  data = parseInt(data);
   if ( updatesCounter.updates !== 0 ) {
-    lostUpdates += (data - lastUpdate) - 1;
+    updatesCounter.lostUpdates += (data - updatesCounter.lastUpdate) - 1;
   }
   updatesCounter.lastUpdate = data;
   updatesCounter.updates++
@@ -186,7 +187,7 @@ function newSubscription () {
   console.log('Subscribing.')
   const subscription = new EventSource('/subscription');
   subscription.addEventListener('open', ev => console.log('Subscription opened.') );
-  subscription.addEventListener('update', ev => { writeDateToDB(ev.data); updateCounter(data) });
+  subscription.addEventListener('update', ev => { writeDateToDB(ev.data); updateCounter(ev.data) });
   subscription.addEventListener('welcome', ev => console.log('Got subscription response:', ev.data) );
   return subscription
 }
@@ -198,7 +199,10 @@ function preloadCache (ev) {
         cache => cache.addAll(precache.paths)
       )
       .then(
-        self.skipWaiting()
+        (ev) => {
+          console.log('> NEW WORKER INSTALLED <');
+          self.skipWaiting();
+        }
       )
   );
 }
@@ -233,9 +237,10 @@ function main () {
   const subscription = newSubscription();
 }
 
+main()
 
 self.addEventListener('install', preloadCache );
 
-self.addEventListener('activate', main);
-
 self.addEventListener('notificationclick', notificationsHandler)
+
+//self.addEventListener('activate', main);

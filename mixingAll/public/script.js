@@ -87,7 +87,7 @@ function updateDisplay (ev) {
 
 function getStoreData (db, storeName) {
   const transaction = db.transaction(storeName, 'readonly');
-  transaction.oncomplete = ev => console.log('Transaction done for window.');
+  //transaction.oncomplete = ev => console.log('Transaction done for window.');
   transaction.onerror = ev => console.error('Transaction error:', ev);
   const store = transaction.objectStore(storeName);
   const resquest = store.getAll()
@@ -109,14 +109,13 @@ function uptadeCounter (data) {
 }
 
 function messageHandler (ev) {
-    console.log('A new update from worker.')
+    //console.log('A new update from worker.')
     switch (ev.data.type) {
         case 'clicks':
             clicksDiv.innerText = ev.data.value;
             break;
         case 'DBUpdate':
             let timestamp = ev.data.obj.timestamp
-            console.log('DB update notification:', ev.data.obj.string);
             getStoreData(db, 'times');
             if ( timestamp % 15 === 0 && Notification.permission === 'granted') {
                 let notif = new Notification(
@@ -130,7 +129,9 @@ function messageHandler (ev) {
             }
             break;
         case 'counterUpdate':
-            updatesCounter(/* Pasar datos y reescribir funcion */);
+            //updatesCounter(/* Pasar datos y reescribir funcion */);
+            console.log('Notifications counters update');
+            break;
         default:
             console.error('Unknown messaje:', ev);
     }
@@ -155,6 +156,10 @@ function grantNotifications () {
         }
         if (Notification.permission === 'granted') channel.postMessage({type: 'notificationsGranted'});
     }
+}
+
+function keepAlive () {
+    fetch('ping.txt').then(()=>{console.log('Got pong...')})
 }
 
 function main () {
@@ -187,6 +192,8 @@ function main () {
         grantNotifications();
 
         button.addEventListener('click', () =>  channel.postMessage(clickMessage) );
+
+        setInterval(keepAlive,20000);
 
     } else {
 
