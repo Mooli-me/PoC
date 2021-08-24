@@ -17,4 +17,6 @@ References:
 * Shared worker bad support: https://caniuse.com/?search=sharedworker
 * Prevent service worker to stop: https://stackoverflow.com/questions/29741922/prevent-service-worker-from-automatically-stopping
 * Broadcast channel API: https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API
-* HTTP/2: https://en.wikipedia.org/wiki/HTTP/2
+* HTTP/2:
+  * https://en.wikipedia.org/wiki/HTTP/2
+  * https://nodejs.org/api/http2.html
